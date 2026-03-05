@@ -8,27 +8,29 @@
   <style>
     *{ box-sizing:border-box; }
 
-    html,body{
-      margin:0;
-      min-height:100%;
-    }
+    html,body{ margin:0; min-height:100%; }
 
     body{
       color:white;
       font-family:system-ui,-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;
       text-align:center;
+
+      /* ✅ タイトルが切れないように背景を少し下へ */
       background:
         linear-gradient(rgba(0,0,0,.14), rgba(0,0,0,.28)),
-        url("bg.png.PNG") center top / cover no-repeat fixed;
+        url("bg.png.PNG") center 38px / cover no-repeat fixed;
     }
 
-    /* ロゴの余白を作るため少し下げる */
+    /* ✅ 上下の安全領域を考慮しつつ、全体を少し上に詰める */
     .wrap{
       min-height:100vh;
       display:flex;
       align-items:flex-end;
       justify-content:center;
-      padding:190px 16px 22px;
+
+      padding:
+        calc(170px + env(safe-area-inset-top)) 16px
+        calc(26px + env(safe-area-inset-bottom));
     }
 
     .panel{
@@ -39,66 +41,66 @@
       box-shadow:none;
     }
 
-    /* パネルを少し透明にして背景を見せる */
+    /* ✅ 少しだけコンパクトにして収める */
     .block{
       background:rgba(3,16,27,.40);
       border:1px solid rgba(170,220,255,.10);
-      border-radius:26px;
-      padding:18px 14px 14px;
-      margin-bottom:16px;
+      border-radius:24px;
+      padding:16px 14px 12px;
+      margin-bottom:14px;
       backdrop-filter:blur(3px);
-      box-shadow: 0 12px 28px rgba(0,0,0,.18);
+      box-shadow: 0 10px 24px rgba(0,0,0,.18);
     }
 
     .label{
-      font-size:13px;
+      font-size:12px;
       letter-spacing:.24em;
       font-weight:700;
       color:rgba(255,255,255,.92);
-      margin-bottom:14px;
+      margin-bottom:12px;
     }
 
     .row{
       display:flex;
       align-items:center;
       justify-content:center;
-      gap:18px;
+      gap:16px;
     }
 
     .value{
-      min-width:96px;
-      font-size:76px;
+      min-width:88px;
+      font-size:70px;
       font-weight:800;
       line-height:1;
       color:#f4fbff;
-      text-shadow:0 8px 24px rgba(0,0,0,.38);
+      text-shadow:0 8px 22px rgba(0,0,0,.38);
     }
 
     .btn{
-      width:88px;
-      height:88px;
+      width:82px;
+      height:82px;
       border:none;
-      border-radius:22px;
-      font-size:44px;
+      border-radius:20px;
+      font-size:42px;
       font-weight:700;
       color:#eef9ff;
       background:
         linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,0) 24%),
         linear-gradient(180deg, #5b88af 0%, #3a739f 42%, #24587f 100%);
       box-shadow:
-        0 10px 22px rgba(0,0,0,.28),
+        0 10px 20px rgba(0,0,0,.26),
         inset 0 1px 0 rgba(255,255,255,.18);
     }
 
     .btn:active{
       transform:scale(.98);
       box-shadow:
-        0 7px 16px rgba(0,0,0,.22),
+        0 7px 14px rgba(0,0,0,.22),
         inset 0 2px 6px rgba(0,0,0,.16);
     }
 
     .hint{
-      margin-top:12px;
+      margin-top:10px;
       font-size:12px;
       color:rgba(255,255,255,.56);
       letter-spacing:.06em;
@@ -106,11 +108,11 @@
 
     .reset{
       width:100%;
-      height:66px;
+      height:62px;
       border:none;
-      border-radius:22px;
+      border-radius:20px;
       margin-top:4px;
-      font-size:22px;
+      font-size:20px;
       font-weight:800;
       letter-spacing:.18em;
       color:#fff8e8;
@@ -118,35 +120,29 @@
         linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,0) 24%),
         linear-gradient(180deg, #d7b85a 0%, #c59f38 44%, #976f1c 100%);
       box-shadow:
-        0 12px 26px rgba(0,0,0,.30),
+        0 12px 24px rgba(0,0,0,.28),
         inset 0 1px 0 rgba(255,255,255,.18);
     }
 
     .reset:active{ transform:scale(.99); }
 
     @media (max-width: 430px){
-      .wrap{ padding:190px 14px 20px; }
-
-      .btn{
-        width:78px;
-        height:78px;
-        font-size:40px;
+      body{
+        background:
+          linear-gradient(rgba(0,0,0,.14), rgba(0,0,0,.28)),
+          url("bg.png.PNG") center 34px / cover no-repeat fixed;
       }
 
-      .value{
-        min-width:82px;
-        font-size:68px;
+      .wrap{
+        padding:
+          calc(165px + env(safe-area-inset-top)) 14px
+          calc(24px + env(safe-area-inset-bottom));
       }
 
-      .block{
-        border-radius:22px;
-        padding:16px 12px 12px;
-      }
-
-      .reset{
-        height:62px;
-        font-size:20px;
-      }
+      .btn{ width:74px; height:74px; font-size:38px; }
+      .value{ min-width:80px; font-size:64px; }
+      .block{ border-radius:22px; padding:14px 12px 12px; margin-bottom:12px; }
+      .reset{ height:60px; font-size:19px; }
     }
   </style>
 </head>
@@ -181,42 +177,32 @@
   </div>
 
   <script>
-    // LIFE: 0-10
-    let life = Number(localStorage.getItem("kaiyouki_life") ?? 10)
+    let life  = Number(localStorage.getItem("kaiyouki_life") ?? 10);
+    let depth = Number(localStorage.getItem("kaiyouki_depth") ?? 1);
 
-    // DEPTH: 1-4（保存が0でも1に補正）
-    let depth = Number(localStorage.getItem("kaiyouki_depth") ?? 1)
-
-    function clamp(value, min, max){
-      return Math.min(max, Math.max(min, value))
-    }
-
-    function normalize(){
-      life = clamp(life, 0, 10)
-      depth = clamp(depth, 1, 4)
-    }
+    const clamp = (v,min,max)=> Math.min(max, Math.max(min, v));
 
     function update(){
-      normalize()
-      document.getElementById("life").innerText = life
-      document.getElementById("depth").innerText = depth
-      localStorage.setItem("kaiyouki_life", life)
-      localStorage.setItem("kaiyouki_depth", depth)
+      life  = clamp(life, 0, 10);
+      depth = clamp(depth, 1, 4);
+      document.getElementById("life").innerText = life;
+      document.getElementById("depth").innerText = depth;
+      localStorage.setItem("kaiyouki_life", life);
+      localStorage.setItem("kaiyouki_depth", depth);
     }
 
-    function lifePlus(){ life = life + 1; update() }
-    function lifeMinus(){ life = life - 1; update() }
-
-    function depthPlus(){ depth = depth + 1; update() }
-    function depthMinus(){ depth = depth - 1; update() }
+    function lifePlus(){ life++; update(); }
+    function lifeMinus(){ life--; update(); }
+    function depthPlus(){ depth++; update(); }
+    function depthMinus(){ depth--; update(); }
 
     function reset(){
-      life = 10
-      depth = 1
-      update()
+      life = 10;
+      depth = 1;
+      update();
     }
 
-    update()
+    update();
   </script>
 </body>
 </html>
