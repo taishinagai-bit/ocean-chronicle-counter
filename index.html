@@ -131,18 +131,11 @@
       display:flex;
       gap:10px;
       margin-top:4px;
-      margin-bottom:10px;
-    }
-
-    .adjustButtons{
-      display:flex;
-      gap:10px;
     }
 
     .reset,
     .bgSwitch,
-    .musicBtn,
-    .adjustBtn{
+    .musicBtn{
       border:none;
       border-radius:18px;
       font-weight:800;
@@ -167,17 +160,6 @@
       display:flex;
       align-items:center;
       justify-content:center;
-    }
-
-    .adjustBtn{
-      flex:1;
-      height:48px;
-      font-size:16px;
-      letter-spacing:.08em;
-      color:#eef9ff;
-      background:
-        linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,0) 24%),
-        linear-gradient(180deg, #405a73 0%, #2d4357 44%, #1f3141 100%);
     }
 
     .reset{
@@ -210,8 +192,7 @@
 
     .reset:active,
     .bgSwitch:active,
-    .musicBtn:active,
-    .adjustBtn:active{
+    .musicBtn:active{
       transform:scale(.99);
     }
 
@@ -239,8 +220,7 @@
         margin-bottom:12px;
       }
 
-      .footerButtons,
-      .adjustButtons{
+      .footerButtons{
         gap:8px;
       }
 
@@ -256,12 +236,6 @@
         height:54px;
         flex:0 0 54px;
         font-size:22px;
-        border-radius:16px;
-      }
-
-      .adjustBtn{
-        height:44px;
-        font-size:14px;
         border-radius:16px;
       }
     }
@@ -298,11 +272,6 @@
         <button class="reset" type="button" onclick="reset()">RESET</button>
         <button class="bgSwitch" id="bgToggleBtn" type="button">背景切り替え</button>
         <button class="musicBtn" id="musicBtn" type="button" aria-label="BGM切り替え">🎵</button>
-      </div>
-
-      <div class="adjustButtons">
-        <button class="adjustBtn" type="button" onclick="moveBackground(-20)">背景↑</button>
-        <button class="adjustBtn" type="button" onclick="moveBackground(20)">背景↓</button>
       </div>
 
     </div>
@@ -381,48 +350,23 @@
       return localStorage.getItem(BG_KEY) || "siren";
     }
 
-    function getBgOffsetKey(bgId){
-      return `kaiyouki_bg_offset_${bgId}`;
-    }
-
     function getBackgroundConfig(bgId){
       return BG_LIST.find(item => item.id === bgId) || BG_LIST[0];
     }
 
-    function getSavedOffset(bgId){
-      const bg = getBackgroundConfig(bgId);
-      const saved = localStorage.getItem(getBgOffsetKey(bgId));
-      return saved !== null ? Number(saved) : bg.defaultOffset;
-    }
-
     function applyBackground(bgId){
       const bg = getBackgroundConfig(bgId);
-      const offset = getSavedOffset(bgId);
-
       const bgLayer = document.getElementById("bgLayer");
+
       bgLayer.style.backgroundImage =
         `linear-gradient(rgba(0,0,0,.10), rgba(0,0,0,.22)), url("${bg.file}")`;
-      bgLayer.style.backgroundPosition = `center ${offset}px`;
+      bgLayer.style.backgroundPosition = `center ${bg.defaultOffset}px`;
 
       localStorage.setItem(BG_KEY, bg.id);
 
       if (isMusicEnabled()) {
         switchMusicForBackground(bg);
       }
-    }
-
-    function saveOffsetForCurrentBg(offset){
-      const bgId = getCurrentBgId();
-      localStorage.setItem(getBgOffsetKey(bgId), String(offset));
-    }
-
-    async function moveBackground(amount){
-      const bgId = getCurrentBgId();
-      const currentOffset = getSavedOffset(bgId);
-      const nextOffset = currentOffset + amount;
-      saveOffsetForCurrentBg(nextOffset);
-      applyBackground(bgId);
-      await playSfx(sfxTap);
     }
 
     async function toggleBackground(){
