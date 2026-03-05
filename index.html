@@ -9,26 +9,42 @@
   <meta name="theme-color" content="#061018">
 
   <style>
-    *{ box-sizing:border-box; }
-    html,body{ margin:0; min-height:100%; }
+    *{
+      box-sizing:border-box;
+    }
+
+    html,body{
+      margin:0;
+      min-height:100%;
+      overflow:hidden;
+    }
 
     :root{
-      --bg-url: url("bg-siren.PNG");
-      --bg-pos-y: 18px;
-      --bg-overlay-top: rgba(0,0,0,.10);
-      --bg-overlay-bottom: rgba(0,0,0,.22);
+      --bg-offset-y: 18px;
     }
 
     body{
       color:white;
       font-family:system-ui,-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;
       text-align:center;
-      background:
-        linear-gradient(var(--bg-overlay-top), var(--bg-overlay-bottom)),
-        var(--bg-url) center var(--bg-pos-y) / cover no-repeat fixed;
+      background:#061018;
+    }
+
+    .bgLayer{
+      position:fixed;
+      inset:0;
+      background-image:
+        linear-gradient(rgba(0,0,0,.10), rgba(0,0,0,.22)),
+        url("bg-siren.PNG");
+      background-size:cover;
+      background-repeat:no-repeat;
+      background-position:center var(--bg-offset-y);
+      z-index:0;
     }
 
     .wrap{
+      position:relative;
+      z-index:1;
       min-height:100vh;
       display:flex;
       align-items:flex-end;
@@ -53,7 +69,8 @@
       padding:16px 14px 12px;
       margin-bottom:14px;
       backdrop-filter:blur(4px);
-      box-shadow: 0 10px 24px rgba(0,0,0,.16);
+      box-shadow:
+        0 10px 24px rgba(0,0,0,.16);
     }
 
     .label{
@@ -114,11 +131,18 @@
       display:flex;
       gap:10px;
       margin-top:4px;
+      margin-bottom:10px;
+    }
+
+    .adjustButtons{
+      display:flex;
+      gap:10px;
     }
 
     .reset,
     .bgSwitch,
-    .musicBtn{
+    .musicBtn,
+    .adjustBtn{
       border:none;
       border-radius:18px;
       font-weight:800;
@@ -143,6 +167,17 @@
       display:flex;
       align-items:center;
       justify-content:center;
+    }
+
+    .adjustBtn{
+      flex:1;
+      height:48px;
+      font-size:16px;
+      letter-spacing:.08em;
+      color:#eef9ff;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,0) 24%),
+        linear-gradient(180deg, #405a73 0%, #2d4357 44%, #1f3141 100%);
     }
 
     .reset{
@@ -175,7 +210,8 @@
 
     .reset:active,
     .bgSwitch:active,
-    .musicBtn:active{
+    .musicBtn:active,
+    .adjustBtn:active{
       transform:scale(.99);
     }
 
@@ -203,7 +239,8 @@
         margin-bottom:12px;
       }
 
-      .footerButtons{
+      .footerButtons,
+      .adjustButtons{
         gap:8px;
       }
 
@@ -221,11 +258,19 @@
         font-size:22px;
         border-radius:16px;
       }
+
+      .adjustBtn{
+        height:44px;
+        font-size:14px;
+        border-radius:16px;
+      }
     }
   </style>
 </head>
 
 <body>
+  <div class="bgLayer" id="bgLayer"></div>
+
   <div class="wrap">
     <div class="panel">
 
@@ -255,16 +300,21 @@
         <button class="musicBtn" id="musicBtn" type="button" aria-label="BGM切り替え">🎵</button>
       </div>
 
+      <div class="adjustButtons">
+        <button class="adjustBtn" type="button" onclick="moveBackground(-20)">背景↑</button>
+        <button class="adjustBtn" type="button" onclick="moveBackground(20)">背景↓</button>
+      </div>
+
     </div>
   </div>
 
   <script>
     // -----------------------------
-    // SFX (tap / depth)
+    // SFX
     // -----------------------------
     const SFX_ENABLED_KEY = "kaiyouki_sfx_enabled";
     if (localStorage.getItem(SFX_ENABLED_KEY) === null) {
-      localStorage.setItem(SFX_ENABLED_KEY, "true"); // 初期ON
+      localStorage.setItem(SFX_ENABLED_KEY, "true");
     }
 
     const sfxTap = new Audio("tap.mp3");
@@ -281,9 +331,7 @@
       try{
         audioObj.currentTime = 0;
         await audioObj.play();
-      } catch(e){
-        // iOSの制限等で鳴らない場合は黙って無視
-      }
+      } catch(e){}
     }
 
     // -----------------------------
@@ -307,7 +355,6 @@
 
     async function lifePlus(){ life++; update(); await playSfx(sfxTap); }
     async function lifeMinus(){ life--; update(); await playSfx(sfxTap); }
-
     async function depthPlus(){ depth++; update(); await playSfx(sfxDepth); }
     async function depthMinus(){ depth--; update(); await playSfx(sfxDepth); }
 
@@ -315,31 +362,48 @@
       life = 10;
       depth = 1;
       update();
-      // リセット音は不要 → tapで軽く鳴らす（無音にしたければこの行削除）
       await playSfx(sfxTap);
     }
 
     update();
 
     // -----------------------------
-    // Background toggle
+    // Background config
     // -----------------------------
     const BG_KEY = "kaiyouki_bg";
 
     const BG_LIST = [
-      { id: "siren",     file: "bg-siren.PNG",     posY: "18px", music: "bgm-siren.mp3" },
-      { id: "leviathan", file: "bg-leviathan.PNG", posY: "18px", music: "bgm-leviathan.mp3" }
+      { id: "siren", file: "bg-siren.PNG", music: "bgm-siren.mp3", defaultOffset: 18 },
+      { id: "leviathan", file: "bg-leviathan.PNG", music: "bgm-leviathan.mp3", defaultOffset: 18 }
     ];
 
-    function getCurrentBg(){
-      const saved = localStorage.getItem(BG_KEY) || "siren";
-      return BG_LIST.find(item => item.id === saved) || BG_LIST[0];
+    function getCurrentBgId(){
+      return localStorage.getItem(BG_KEY) || "siren";
+    }
+
+    function getBgOffsetKey(bgId){
+      return `kaiyouki_bg_offset_${bgId}`;
+    }
+
+    function getBackgroundConfig(bgId){
+      return BG_LIST.find(item => item.id === bgId) || BG_LIST[0];
+    }
+
+    function getSavedOffset(bgId){
+      const bg = getBackgroundConfig(bgId);
+      const saved = localStorage.getItem(getBgOffsetKey(bgId));
+      return saved !== null ? Number(saved) : bg.defaultOffset;
     }
 
     function applyBackground(bgId){
-      const bg = BG_LIST.find(item => item.id === bgId) || BG_LIST[0];
-      document.documentElement.style.setProperty("--bg-url", `url("${bg.file}")`);
-      document.documentElement.style.setProperty("--bg-pos-y", bg.posY);
+      const bg = getBackgroundConfig(bgId);
+      const offset = getSavedOffset(bgId);
+
+      const bgLayer = document.getElementById("bgLayer");
+      bgLayer.style.backgroundImage =
+        `linear-gradient(rgba(0,0,0,.10), rgba(0,0,0,.22)), url("${bg.file}")`;
+      bgLayer.style.backgroundPosition = `center ${offset}px`;
+
       localStorage.setItem(BG_KEY, bg.id);
 
       if (isMusicEnabled()) {
@@ -347,8 +411,22 @@
       }
     }
 
+    function saveOffsetForCurrentBg(offset){
+      const bgId = getCurrentBgId();
+      localStorage.setItem(getBgOffsetKey(bgId), String(offset));
+    }
+
+    async function moveBackground(amount){
+      const bgId = getCurrentBgId();
+      const currentOffset = getSavedOffset(bgId);
+      const nextOffset = currentOffset + amount;
+      saveOffsetForCurrentBg(nextOffset);
+      applyBackground(bgId);
+      await playSfx(sfxTap);
+    }
+
     async function toggleBackground(){
-      const current = localStorage.getItem(BG_KEY) || BG_LIST[0].id;
+      const current = getCurrentBgId();
       const currentIndex = BG_LIST.findIndex(item => item.id === current);
       const nextIndex = (currentIndex + 1) % BG_LIST.length;
       applyBackground(BG_LIST[nextIndex].id);
@@ -358,7 +436,7 @@
     document.getElementById("bgToggleBtn").addEventListener("click", toggleBackground);
 
     // -----------------------------
-    // Music (per background)
+    // Music
     // -----------------------------
     const MUSIC_KEY = "kaiyouki_music_enabled";
     const audio = new Audio();
@@ -378,7 +456,9 @@
     async function switchMusicForBackground(bg){
       try{
         const nextSrc = bg.music;
-        if (!audio.src.endsWith(nextSrc)) audio.src = nextSrc;
+        if (!audio.src.endsWith(nextSrc)) {
+          audio.src = nextSrc;
+        }
         audio.currentTime = 0;
         await audio.play();
       } catch (e) {
@@ -393,7 +473,7 @@
         audio.pause();
       } else {
         localStorage.setItem(MUSIC_KEY, "true");
-        await switchMusicForBackground(getCurrentBg());
+        await switchMusicForBackground(getBackgroundConfig(getCurrentBgId()));
       }
       updateMusicButton();
       await playSfx(sfxTap);
@@ -404,7 +484,7 @@
     // -----------------------------
     // Init
     // -----------------------------
-    applyBackground(localStorage.getItem(BG_KEY) || "siren");
+    applyBackground(getCurrentBgId());
     updateMusicButton();
   </script>
 </body>
