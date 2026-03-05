@@ -8,49 +8,78 @@
 <style>
 
 body{
-background:#061018;
+background:linear-gradient(#031018,#061c2b);
 color:white;
 font-family:system-ui;
 text-align:center;
-padding-top:40px;
+padding-top:60px;
 }
 
 h1{
-letter-spacing:2px;
+letter-spacing:4px;
+font-size:28px;
+margin-bottom:40px;
+}
+
+.panel{
+background:#0b2536;
+border-radius:20px;
+padding:30px;
+width:300px;
+margin:auto;
+box-shadow:0 0 30px rgba(0,0,0,0.5);
 }
 
 .counter{
-margin:40px;
+margin:30px 0;
+}
+
+.label{
+font-size:14px;
+opacity:0.7;
+letter-spacing:2px;
 }
 
 .value{
 font-size:60px;
-margin:20px;
+margin:15px;
 }
 
 button{
-font-size:25px;
+font-size:24px;
 width:60px;
 height:50px;
+border:none;
+border-radius:10px;
+background:#1b4e6a;
+color:white;
 margin:5px;
 }
 
+button:active{
+transform:scale(0.95);
+}
+
 .reset{
-margin-top:30px;
+margin-top:20px;
 width:120px;
-height:50px;
+height:45px;
+background:#805d1c;
 }
 
 </style>
+
 </head>
 
 <body>
 
 <h1>OCEAN CHRONICLE</h1>
 
+<div class="panel">
+
 <div class="counter">
 
-<h2>LIFE</h2>
+<div class="label">LIFE</div>
 
 <button onclick="lifeMinus()">−</button>
 
@@ -62,7 +91,7 @@ height:50px;
 
 <div class="counter">
 
-<h2>DEPTH</h2>
+<div class="label">DEPTH</div>
 
 <button onclick="depthMinus()">−</button>
 
@@ -73,6 +102,8 @@ height:50px;
 </div>
 
 <button class="reset" onclick="reset()">RESET</button>
+
+</div>
 
 <script>
 
