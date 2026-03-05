@@ -20,7 +20,7 @@
       font-family:system-ui,-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;
       text-align:center;
       background:
-        linear-gradient(rgba(0,0,0,.28), rgba(0,0,0,.50)),
+        linear-gradient(rgba(0,0,0,.18), rgba(0,0,0,.34)),
         url("bg.png") center top / cover no-repeat fixed;
     }
 
@@ -29,37 +29,33 @@
       display:flex;
       align-items:flex-end;
       justify-content:center;
-      padding:160px 16px 18px;
+      padding:160px 16px 22px;
     }
 
     .panel{
       width:min(92vw, 420px);
-      background:rgba(5,20,32,.72);
-      border:1px solid rgba(180,230,255,.16);
-      border-radius:28px;
-      padding:22px 18px 20px;
-      backdrop-filter:blur(4px);
-      box-shadow:
-        0 12px 40px rgba(0,0,0,.45),
-        inset 0 0 0 1px rgba(255,255,255,.03);
+      padding:0;
+      background:transparent;
+      border:none;
+      box-shadow:none;
     }
 
     .block{
-      background:rgba(1,14,24,.52);
-      border:1px solid rgba(140,220,255,.10);
-      border-radius:24px;
-      padding:18px 12px 14px;
-      margin-bottom:14px;
+      background:rgba(3,16,27,.54);
+      border:1px solid rgba(170,220,255,.10);
+      border-radius:26px;
+      padding:18px 14px 14px;
+      margin-bottom:16px;
+      backdrop-filter:blur(3px);
       box-shadow:
-        inset 0 0 24px rgba(0,120,200,.08),
-        0 8px 22px rgba(0,0,0,.18);
+        0 12px 28px rgba(0,0,0,.24);
     }
 
     .label{
       font-size:13px;
       letter-spacing:.24em;
       font-weight:700;
-      color:rgba(255,255,255,.88);
+      color:rgba(255,255,255,.90);
       margin-bottom:14px;
     }
 
@@ -76,7 +72,7 @@
       font-weight:800;
       line-height:1;
       color:#f4fbff;
-      text-shadow:0 8px 24px rgba(0,0,0,.45);
+      text-shadow:0 8px 24px rgba(0,0,0,.42);
     }
 
     .btn{
@@ -88,29 +84,18 @@
       font-weight:700;
       color:#eef9ff;
       background:
-        linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,0) 28%),
-        linear-gradient(180deg, #5f8eb8 0%, #3c78a8 38%, #245d88 100%);
+        linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,0) 24%),
+        linear-gradient(180deg, #5b88af 0%, #3a739f 42%, #24587f 100%);
       box-shadow:
-        0 12px 26px rgba(0,0,0,.34),
-        inset 0 1px 0 rgba(255,255,255,.22),
-        inset 0 -3px 8px rgba(0,0,0,.18);
-      position:relative;
-    }
-
-    .btn::before{
-      content:"";
-      position:absolute;
-      inset:6px;
-      border-radius:18px;
-      border:1px solid rgba(210,235,255,.14);
-      pointer-events:none;
+        0 10px 22px rgba(0,0,0,.28),
+        inset 0 1px 0 rgba(255,255,255,.18);
     }
 
     .btn:active{
       transform:scale(.98);
       box-shadow:
-        0 8px 18px rgba(0,0,0,.28),
-        inset 0 2px 6px rgba(0,0,0,.18);
+        0 7px 16px rgba(0,0,0,.22),
+        inset 0 2px 6px rgba(0,0,0,.16);
     }
 
     .hint{
@@ -122,54 +107,29 @@
 
     .reset{
       width:100%;
-      height:68px;
+      height:66px;
       border:none;
       border-radius:22px;
-      margin-top:6px;
+      margin-top:4px;
       font-size:22px;
       font-weight:800;
       letter-spacing:.18em;
       color:#fff8e8;
       background:
-        linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,0) 24%),
-        linear-gradient(180deg, #dbbd5b 0%, #c9a53f 42%, #9a741f 100%);
+        linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,0) 24%),
+        linear-gradient(180deg, #d7b85a 0%, #c59f38 44%, #976f1c 100%);
       box-shadow:
-        0 14px 30px rgba(0,0,0,.38),
-        inset 0 1px 0 rgba(255,255,255,.24),
-        inset 0 -4px 10px rgba(90,55,0,.20);
-      position:relative;
-    }
-
-    .reset::before{
-      content:"";
-      position:absolute;
-      inset:7px;
-      border-radius:16px;
-      border:1px solid rgba(255,245,220,.16);
-      pointer-events:none;
+        0 12px 26px rgba(0,0,0,.30),
+        inset 0 1px 0 rgba(255,255,255,.18);
     }
 
     .reset:active{
       transform:scale(.99);
-      box-shadow:
-        0 10px 22px rgba(0,0,0,.32),
-        inset 0 2px 6px rgba(80,45,0,.20);
     }
 
     @media (max-width: 430px){
       .wrap{
-        padding:160px 14px 18px;
-      }
-
-      .panel{
-        width:100%;
-        border-radius:24px;
-        padding:18px 14px 16px;
-      }
-
-      .block{
-        border-radius:20px;
-        padding:16px 10px 12px;
+        padding:160px 14px 20px;
       }
 
       .btn{
@@ -183,8 +143,13 @@
         font-size:68px;
       }
 
+      .block{
+        border-radius:22px;
+        padding:16px 12px 12px;
+      }
+
       .reset{
-        height:64px;
+        height:62px;
         font-size:20px;
       }
     }
