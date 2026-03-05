@@ -7,7 +7,6 @@
 
   <style>
     *{ box-sizing:border-box; }
-
     html,body{ margin:0; min-height:100%; }
 
     body{
@@ -15,19 +14,17 @@
       font-family:system-ui,-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;
       text-align:center;
 
-      /* ✅ タイトルが切れないように背景を少し下へ */
+      /* ✅ タイトルが切れないように背景をさらに下へ */
       background:
         linear-gradient(rgba(0,0,0,.14), rgba(0,0,0,.28)),
-        url("bg.png.PNG") center 38px / cover no-repeat fixed;
+        url("bg.png.PNG") center 80px / cover no-repeat fixed;
     }
 
-    /* ✅ 上下の安全領域を考慮しつつ、全体を少し上に詰める */
     .wrap{
       min-height:100vh;
       display:flex;
       align-items:flex-end;
       justify-content:center;
-
       padding:
         calc(170px + env(safe-area-inset-top)) 16px
         calc(26px + env(safe-area-inset-bottom));
@@ -41,7 +38,6 @@
       box-shadow:none;
     }
 
-    /* ✅ 少しだけコンパクトにして収める */
     .block{
       background:rgba(3,16,27,.40);
       border:1px solid rgba(170,220,255,.10);
@@ -130,7 +126,7 @@
       body{
         background:
           linear-gradient(rgba(0,0,0,.14), rgba(0,0,0,.28)),
-          url("bg.png.PNG") center 34px / cover no-repeat fixed;
+          url("bg.png.PNG") center 80px / cover no-repeat fixed;
       }
 
       .wrap{
