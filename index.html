@@ -1,0 +1,126 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ocean Chronicle Counter</title>
+
+<style>
+
+body{
+background:#061018;
+color:white;
+font-family:system-ui;
+text-align:center;
+padding-top:40px;
+}
+
+h1{
+letter-spacing:2px;
+}
+
+.counter{
+margin:40px;
+}
+
+.value{
+font-size:60px;
+margin:20px;
+}
+
+button{
+font-size:25px;
+width:60px;
+height:50px;
+margin:5px;
+}
+
+.reset{
+margin-top:30px;
+width:120px;
+height:50px;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>OCEAN CHRONICLE</h1>
+
+<div class="counter">
+
+<h2>LIFE</h2>
+
+<button onclick="lifeMinus()">−</button>
+
+<span class="value" id="life">10</span>
+
+<button onclick="lifePlus()">＋</button>
+
+</div>
+
+<div class="counter">
+
+<h2>DEPTH</h2>
+
+<button onclick="depthMinus()">−</button>
+
+<span class="value" id="depth">0</span>
+
+<button onclick="depthPlus()">＋</button>
+
+</div>
+
+<button class="reset" onclick="reset()">RESET</button>
+
+<script>
+
+let life = 10
+let depth = 0
+
+function update(){
+document.getElementById("life").innerText = life
+document.getElementById("depth").innerText = depth
+}
+
+function lifePlus(){
+if(life < 10){
+life++
+update()
+}
+}
+
+function lifeMinus(){
+if(life > 0){
+life--
+update()
+}
+}
+
+function depthPlus(){
+if(depth < 4){
+depth++
+update()
+}
+}
+
+function depthMinus(){
+if(depth > 0){
+depth--
+update()
+}
+}
+
+function reset(){
+life = 10
+depth = 0
+update()
+}
+
+update()
+
+</script>
+
+</body>
+</html>
