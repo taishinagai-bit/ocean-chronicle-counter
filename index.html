@@ -3,22 +3,230 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>背景確認</title>
+  <title>Ocean Chronicle Counter</title>
 
   <style>
+    *{
+      box-sizing:border-box;
+    }
+
     html,body{
       margin:0;
-      width:100%;
-      height:100%;
+      min-height:100%;
     }
 
     body{
+      color:white;
+      font-family:system-ui,-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;
+      text-align:center;
       background:
-        linear-gradient(rgba(0,0,0,.15), rgba(0,0,0,.25)),
-        url("bg.png.PNG") center center / cover no-repeat fixed;
+        linear-gradient(rgba(0,0,0,.18), rgba(0,0,0,.34)),
+        url("bg.png.PNG") center top / cover no-repeat fixed;
+    }
+
+    .wrap{
+      min-height:100vh;
+      display:flex;
+      align-items:flex-end;
+      justify-content:center;
+      padding:160px 16px 22px;
+    }
+
+    .panel{
+      width:min(92vw, 420px);
+      padding:0;
+      background:transparent;
+      border:none;
+      box-shadow:none;
+    }
+
+    .block{
+      background:rgba(3,16,27,.54);
+      border:1px solid rgba(170,220,255,.10);
+      border-radius:26px;
+      padding:18px 14px 14px;
+      margin-bottom:16px;
+      backdrop-filter:blur(3px);
+      box-shadow:
+        0 12px 28px rgba(0,0,0,.24);
+    }
+
+    .label{
+      font-size:13px;
+      letter-spacing:.24em;
+      font-weight:700;
+      color:rgba(255,255,255,.90);
+      margin-bottom:14px;
+    }
+
+    .row{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:18px;
+    }
+
+    .value{
+      min-width:96px;
+      font-size:76px;
+      font-weight:800;
+      line-height:1;
+      color:#f4fbff;
+      text-shadow:0 8px 24px rgba(0,0,0,.42);
+    }
+
+    .btn{
+      width:88px;
+      height:88px;
+      border:none;
+      border-radius:22px;
+      font-size:44px;
+      font-weight:700;
+      color:#eef9ff;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,0) 24%),
+        linear-gradient(180deg, #5b88af 0%, #3a739f 42%, #24587f 100%);
+      box-shadow:
+        0 10px 22px rgba(0,0,0,.28),
+        inset 0 1px 0 rgba(255,255,255,.18);
+    }
+
+    .btn:active{
+      transform:scale(.98);
+      box-shadow:
+        0 7px 16px rgba(0,0,0,.22),
+        inset 0 2px 6px rgba(0,0,0,.16);
+    }
+
+    .hint{
+      margin-top:12px;
+      font-size:12px;
+      color:rgba(255,255,255,.56);
+      letter-spacing:.06em;
+    }
+
+    .reset{
+      width:100%;
+      height:66px;
+      border:none;
+      border-radius:22px;
+      margin-top:4px;
+      font-size:22px;
+      font-weight:800;
+      letter-spacing:.18em;
+      color:#fff8e8;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,0) 24%),
+        linear-gradient(180deg, #d7b85a 0%, #c59f38 44%, #976f1c 100%);
+      box-shadow:
+        0 12px 26px rgba(0,0,0,.30),
+        inset 0 1px 0 rgba(255,255,255,.18);
+    }
+
+    .reset:active{
+      transform:scale(.99);
+    }
+
+    @media (max-width: 430px){
+      .wrap{
+        padding:160px 14px 20px;
+      }
+
+      .btn{
+        width:78px;
+        height:78px;
+        font-size:40px;
+      }
+
+      .value{
+        min-width:82px;
+        font-size:68px;
+      }
+
+      .block{
+        border-radius:22px;
+        padding:16px 12px 12px;
+      }
+
+      .reset{
+        height:62px;
+        font-size:20px;
+      }
     }
   </style>
 </head>
+
 <body>
+  <div class="wrap">
+    <div class="panel">
+
+      <div class="block">
+        <div class="label">LIFE</div>
+        <div class="row">
+          <button class="btn" onclick="lifeMinus()">−</button>
+          <div class="value" id="life">10</div>
+          <button class="btn" onclick="lifePlus()">＋</button>
+        </div>
+        <div class="hint">範囲 0〜10</div>
+      </div>
+
+      <div class="block">
+        <div class="label">DEPTH</div>
+        <div class="row">
+          <button class="btn" onclick="depthMinus()">−</button>
+          <div class="value" id="depth">0</div>
+          <button class="btn" onclick="depthPlus()">＋</button>
+        </div>
+        <div class="hint">範囲 0〜4</div>
+      </div>
+
+      <button class="reset" onclick="reset()">RESET</button>
+
+    </div>
+  </div>
+
+  <script>
+    let life = Number(localStorage.getItem("kaiyouki_life") ?? 10)
+    let depth = Number(localStorage.getItem("kaiyouki_depth") ?? 0)
+
+    function clamp(value, min, max){
+      return Math.min(max, Math.max(min, value))
+    }
+
+    function update(){
+      document.getElementById("life").innerText = life
+      document.getElementById("depth").innerText = depth
+      localStorage.setItem("kaiyouki_life", life)
+      localStorage.setItem("kaiyouki_depth", depth)
+    }
+
+    function lifePlus(){
+      life = clamp(life + 1, 0, 10)
+      update()
+    }
+
+    function lifeMinus(){
+      life = clamp(life - 1, 0, 10)
+      update()
+    }
+
+    function depthPlus(){
+      depth = clamp(depth + 1, 0, 4)
+      update()
+    }
+
+    function depthMinus(){
+      depth = clamp(depth - 1, 0, 4)
+      update()
+    }
+
+    function reset(){
+      life = 10
+      depth = 0
+      update()
+    }
+
+    update()
+  </script>
 </body>
 </html>
