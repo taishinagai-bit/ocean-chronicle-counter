@@ -18,13 +18,20 @@
       min-height:100%;
     }
 
+    :root{
+      --bg-url: url("bg-siren.PNG");
+      --bg-pos-y: 18px;
+      --bg-overlay-top: rgba(0,0,0,.10);
+      --bg-overlay-bottom: rgba(0,0,0,.22);
+    }
+
     body{
       color:white;
       font-family:system-ui,-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif;
       text-align:center;
       background:
-        linear-gradient(rgba(0,0,0,.10), rgba(0,0,0,.22)),
-        url("bg.png.PNG") center 18px / cover no-repeat fixed;
+        linear-gradient(var(--bg-overlay-top), var(--bg-overlay-bottom)),
+        var(--bg-url) center var(--bg-pos-y) / cover no-repeat fixed;
     }
 
     .wrap{
@@ -43,6 +50,29 @@
       background:transparent;
       border:none;
       box-shadow:none;
+      position:relative;
+    }
+
+    .bgToggle{
+      position:absolute;
+      right:0;
+      top:-50px;
+      height:38px;
+      padding:0 14px;
+      border:none;
+      border-radius:999px;
+      background:rgba(3,16,27,.34);
+      border:1px solid rgba(190,230,255,.12);
+      color:rgba(255,255,255,.94);
+      font-size:12px;
+      font-weight:800;
+      letter-spacing:.12em;
+      backdrop-filter:blur(4px);
+      box-shadow:0 8px 18px rgba(0,0,0,.16);
+    }
+
+    .bgToggle:active{
+      transform:scale(.99);
     }
 
     .block{
@@ -111,136 +141,4 @@
     }
 
     .reset{
-      width:100%;
-      height:62px;
-      border:none;
-      border-radius:20px;
-      margin-top:4px;
-      font-size:20px;
-      font-weight:800;
-      letter-spacing:.18em;
-      color:#fff8e8;
-      background:
-        linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,0) 24%),
-        linear-gradient(180deg, #d9ba5b 0%, #c79f39 44%, #976f1c 100%);
-      box-shadow:
-        0 12px 24px rgba(0,0,0,.22),
-        inset 0 1px 0 rgba(255,255,255,.18);
-    }
-
-    .reset:active{
-      transform:scale(.99);
-    }
-
-    @media (max-width: 430px){
-      body{
-        background:
-          linear-gradient(rgba(0,0,0,.10), rgba(0,0,0,.22)),
-          url("bg.png.PNG") center 12px / cover no-repeat fixed;
-      }
-
-      .wrap{
-        padding:
-          calc(220px + env(safe-area-inset-top)) 14px
-          calc(24px + env(safe-area-inset-bottom));
-      }
-
-      .btn{
-        width:74px;
-        height:74px;
-        font-size:38px;
-      }
-
-      .value{
-        min-width:80px;
-        font-size:64px;
-      }
-
-      .block{
-        border-radius:22px;
-        padding:14px 12px 12px;
-        margin-bottom:12px;
-      }
-
-      .reset{
-        height:60px;
-        font-size:19px;
-      }
-    }
-  </style>
-</head>
-
-<body>
-  <div class="wrap">
-    <div class="panel">
-
-      <div class="block">
-        <div class="label">LIFE</div>
-        <div class="row">
-          <button class="btn" onclick="lifeMinus()">−</button>
-          <div class="value" id="life">10</div>
-          <button class="btn" onclick="lifePlus()">＋</button>
-        </div>
-        <div class="hint">範囲 0〜10</div>
-      </div>
-
-      <div class="block">
-        <div class="label">DEPTH</div>
-        <div class="row">
-          <button class="btn" onclick="depthMinus()">−</button>
-          <div class="value" id="depth">1</div>
-          <button class="btn" onclick="depthPlus()">＋</button>
-        </div>
-        <div class="hint">範囲 1〜4</div>
-      </div>
-
-      <button class="reset" onclick="reset()">RESET</button>
-
-    </div>
-  </div>
-
-  <script>
-    let life = Number(localStorage.getItem("kaiyouki_life") ?? 10);
-    let depth = Number(localStorage.getItem("kaiyouki_depth") ?? 1);
-
-    const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
-
-    function update(){
-      life = clamp(life, 0, 10);
-      depth = clamp(depth, 1, 4);
-      document.getElementById("life").innerText = life;
-      document.getElementById("depth").innerText = depth;
-      localStorage.setItem("kaiyouki_life", life);
-      localStorage.setItem("kaiyouki_depth", depth);
-    }
-
-    function lifePlus(){
-      life++;
-      update();
-    }
-
-    function lifeMinus(){
-      life--;
-      update();
-    }
-
-    function depthPlus(){
-      depth++;
-      update();
-    }
-
-    function depthMinus(){
-      depth--;
-      update();
-    }
-
-    function reset(){
-      life = 10;
-      depth = 1;
-      update();
-    }
-
-    update();
-  </script>
-</body>
-</html>
+      width:
