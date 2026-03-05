@@ -11,16 +11,14 @@
   <style>
     *{
       box-sizing:border-box;
+      -webkit-tap-highlight-color: transparent;
     }
 
     html,body{
       margin:0;
       min-height:100%;
       overflow:hidden;
-    }
-
-    :root{
-      --bg-offset-y: 18px;
+      touch-action:none;
     }
 
     body{
@@ -38,7 +36,7 @@
         url("bg-siren.PNG");
       background-size:cover;
       background-repeat:no-repeat;
-      background-position:center var(--bg-offset-y);
+      background-position:center 18px;
       z-index:0;
     }
 
@@ -196,6 +194,23 @@
       transform:scale(.99);
     }
 
+    .dragHint{
+      position:fixed;
+      top:calc(8px + env(safe-area-inset-top));
+      left:50%;
+      transform:translateX(-50%);
+      z-index:1;
+      padding:6px 12px;
+      border-radius:999px;
+      font-size:11px;
+      letter-spacing:.08em;
+      color:rgba(255,255,255,.82);
+      background:rgba(3,16,27,.24);
+      border:1px solid rgba(190,230,255,.10);
+      backdrop-filter:blur(4px);
+      pointer-events:none;
+    }
+
     @media (max-width: 430px){
       .wrap{
         padding:
@@ -244,9 +259,10 @@
 
 <body>
   <div class="bgLayer" id="bgLayer"></div>
+  <div class="dragHint">背景は上側をスワイプで移動</div>
 
   <div class="wrap">
-    <div class="panel">
+    <div class="panel" id="panel">
 
       <div class="block">
         <div class="label">LIFE</div>
@@ -354,13 +370,28 @@
       return BG_LIST.find(item => item.id === bgId) || BG_LIST[0];
     }
 
+    function getBgOffsetKey(bgId){
+      return `kaiyouki_bg_offset_${bgId}`;
+    }
+
+    function getSavedOffset(bgId){
+      const bg = getBackgroundConfig(bgId);
+      const saved = localStorage.getItem(getBgOffsetKey(bgId));
+      return saved !== null ? Number(saved) : bg.defaultOffset;
+    }
+
+    function setSavedOffset(bgId, offset){
+      localStorage.setItem(getBgOffsetKey(bgId), String(offset));
+    }
+
     function applyBackground(bgId){
       const bg = getBackgroundConfig(bgId);
+      const offset = getSavedOffset(bgId);
       const bgLayer = document.getElementById("bgLayer");
 
       bgLayer.style.backgroundImage =
         `linear-gradient(rgba(0,0,0,.10), rgba(0,0,0,.22)), url("${bg.file}")`;
-      bgLayer.style.backgroundPosition = `center ${bg.defaultOffset}px`;
+      bgLayer.style.backgroundPosition = `center ${offset}px`;
 
       localStorage.setItem(BG_KEY, bg.id);
 
@@ -378,6 +409,62 @@
     }
 
     document.getElementById("bgToggleBtn").addEventListener("click", toggleBackground);
+
+    // -----------------------------
+    // Background drag / swipe
+    // -----------------------------
+    let dragStartY = null;
+    let dragStartOffset = null;
+    let dragging = false;
+
+    function panelTop(){
+      return document.getElementById("panel").getBoundingClientRect().top;
+    }
+
+    function canStartDrag(clientY, target){
+      if (target.closest("button")) return false;
+      return clientY < panelTop() - 8;
+    }
+
+    function startDrag(clientY){
+      const bgId = getCurrentBgId();
+      dragStartY = clientY;
+      dragStartOffset = getSavedOffset(bgId);
+      dragging = true;
+    }
+
+    function moveDrag(clientY){
+      if (!dragging) return;
+      const bgId = getCurrentBgId();
+      const delta = clientY - dragStartY;
+      const nextOffset = dragStartOffset + delta;
+      setSavedOffset(bgId, nextOffset);
+      applyBackground(bgId);
+    }
+
+    function endDrag(){
+      dragging = false;
+      dragStartY = null;
+      dragStartOffset = null;
+    }
+
+    document.addEventListener("touchstart", (e) => {
+      const t = e.touches[0];
+      if (canStartDrag(t.clientY, e.target)) {
+        startDrag(t.clientY);
+      }
+    }, { passive:true });
+
+    document.addEventListener("touchmove", (e) => {
+      if (!dragging) return;
+      const t = e.touches[0];
+      moveDrag(t.clientY);
+      e.preventDefault();
+    }, { passive:false });
+
+    document.addEventListener("touchend", () => {
+      endDrag();
+    }, { passive:true });
 
     // -----------------------------
     // Music
