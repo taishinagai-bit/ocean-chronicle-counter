@@ -141,4 +141,169 @@
     }
 
     .reset{
-      width:
+      width:100%;
+      height:62px;
+      border:none;
+      border-radius:20px;
+      margin-top:4px;
+      font-size:20px;
+      font-weight:800;
+      letter-spacing:.18em;
+      color:#fff8e8;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,0) 24%),
+        linear-gradient(180deg, #d9ba5b 0%, #c79f39 44%, #976f1c 100%);
+      box-shadow:
+        0 12px 24px rgba(0,0,0,.22),
+        inset 0 1px 0 rgba(255,255,255,.18);
+    }
+
+    .reset:active{
+      transform:scale(.99);
+    }
+
+    @media (max-width: 430px){
+      .wrap{
+        padding:
+          calc(220px + env(safe-area-inset-top)) 14px
+          calc(24px + env(safe-area-inset-bottom));
+      }
+
+      .bgToggle{
+        top:-46px;
+        height:36px;
+        font-size:11px;
+      }
+
+      .btn{
+        width:74px;
+        height:74px;
+        font-size:38px;
+      }
+
+      .value{
+        min-width:80px;
+        font-size:64px;
+      }
+
+      .block{
+        border-radius:22px;
+        padding:14px 12px 12px;
+        margin-bottom:12px;
+      }
+
+      .reset{
+        height:60px;
+        font-size:19px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="panel">
+
+      <button class="bgToggle" id="bgToggleBtn" type="button">BG: SIREN</button>
+
+      <div class="block">
+        <div class="label">LIFE</div>
+        <div class="row">
+          <button class="btn" onclick="lifeMinus()">−</button>
+          <div class="value" id="life">10</div>
+          <button class="btn" onclick="lifePlus()">＋</button>
+        </div>
+        <div class="hint">範囲 0〜10</div>
+      </div>
+
+      <div class="block">
+        <div class="label">DEPTH</div>
+        <div class="row">
+          <button class="btn" onclick="depthMinus()">−</button>
+          <div class="value" id="depth">1</div>
+          <button class="btn" onclick="depthPlus()">＋</button>
+        </div>
+        <div class="hint">範囲 1〜4</div>
+      </div>
+
+      <button class="reset" onclick="reset()">RESET</button>
+    </div>
+  </div>
+
+  <script>
+    // -----------------------------
+    // Counter state
+    // -----------------------------
+    let life = Number(localStorage.getItem("kaiyouki_life") ?? 10);
+    let depth = Number(localStorage.getItem("kaiyouki_depth") ?? 1);
+
+    const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
+
+    function update(){
+      life = clamp(life, 0, 10);
+      depth = clamp(depth, 1, 4);
+
+      document.getElementById("life").innerText = life;
+      document.getElementById("depth").innerText = depth;
+
+      localStorage.setItem("kaiyouki_life", life);
+      localStorage.setItem("kaiyouki_depth", depth);
+    }
+
+    function lifePlus(){ life++; update(); }
+    function lifeMinus(){ life--; update(); }
+    function depthPlus(){ depth++; update(); }
+    function depthMinus(){ depth--; update(); }
+
+    function reset(){
+      life = 10;
+      depth = 1;
+      update();
+    }
+
+    update();
+
+    // -----------------------------
+    // Background toggle
+    // -----------------------------
+    const BG_KEY = "kaiyouki_bg";
+
+    const BG_LIST = [
+      {
+        id: "siren",
+        label: "SIREN",
+        file: "bg-siren.PNG",
+        posY: "18px"
+      },
+      {
+        id: "leviathan",
+        label: "LEVIATHAN",
+        file: "bg-leviathan.PNG",
+        posY: "18px"
+      }
+    ];
+
+    function applyBackground(bgId){
+      const bg = BG_LIST.find(item => item.id === bgId) || BG_LIST[0];
+
+      document.documentElement.style.setProperty("--bg-url", `url("${bg.file}")`);
+      document.documentElement.style.setProperty("--bg-pos-y", bg.posY);
+
+      document.getElementById("bgToggleBtn").textContent = `BG: ${bg.label}`;
+      localStorage.setItem(BG_KEY, bg.id);
+    }
+
+    function toggleBackground(){
+      const current = localStorage.getItem(BG_KEY) || BG_LIST[0].id;
+      const currentIndex = BG_LIST.findIndex(item => item.id === current);
+      const nextIndex = (currentIndex + 1) % BG_LIST.length;
+      applyBackground(BG_LIST[nextIndex].id);
+    }
+
+    document.getElementById("bgToggleBtn").addEventListener("click", toggleBackground);
+
+    const savedBg = localStorage.getItem(BG_KEY) || "siren";
+    applyBackground(savedBg);
+  </script>
+</body>
+</html>
