@@ -124,17 +124,32 @@
     }
 
     .reset,
-    .bgSwitch{
-      flex:1;
-      height:58px;
+    .bgSwitch,
+    .musicBtn{
       border:none;
       border-radius:18px;
-      font-size:18px;
       font-weight:800;
-      letter-spacing:.10em;
       box-shadow:
         0 10px 20px rgba(0,0,0,.20),
         inset 0 1px 0 rgba(255,255,255,.16);
+    }
+
+    .reset,
+    .bgSwitch{
+      flex:1;
+      height:58px;
+      font-size:18px;
+      letter-spacing:.10em;
+    }
+
+    .musicBtn{
+      width:58px;
+      height:58px;
+      flex:0 0 58px;
+      font-size:24px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
     }
 
     .reset{
@@ -151,8 +166,23 @@
         linear-gradient(180deg, #4f6b86 0%, #334b61 44%, #22384c 100%);
     }
 
+    .musicBtn{
+      color:#eef9ff;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,0) 24%),
+        linear-gradient(180deg, #5d7391 0%, #415771 44%, #2a3d52 100%);
+    }
+
+    .musicBtn.on{
+      color:#fff8e8;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,0) 24%),
+        linear-gradient(180deg, #6ea8d1 0%, #4a7ead 44%, #2f5f86 100%);
+    }
+
     .reset:active,
-    .bgSwitch:active{
+    .bgSwitch:active,
+    .musicBtn:active{
       transform:scale(.99);
     }
 
@@ -190,6 +220,14 @@
         font-size:16px;
         border-radius:16px;
       }
+
+      .musicBtn{
+        width:54px;
+        height:54px;
+        flex:0 0 54px;
+        font-size:22px;
+        border-radius:16px;
+      }
     }
   </style>
 </head>
@@ -221,6 +259,7 @@
       <div class="footerButtons">
         <button class="reset" onclick="reset()">RESET</button>
         <button class="bgSwitch" id="bgToggleBtn" type="button">背景切り替え</button>
+        <button class="musicBtn" id="musicBtn" type="button" aria-label="BGM切り替え">🎵</button>
       </div>
 
     </div>
@@ -246,15 +285,16 @@
       localStorage.setItem("kaiyouki_depth", depth);
     }
 
-    function lifePlus(){ life++; update(); }
-    function lifeMinus(){ life--; update(); }
-    function depthPlus(){ depth++; update(); }
-    function depthMinus(){ depth--; update(); }
+    function lifePlus(){ life++; update(); playTapIfEnabled(); }
+    function lifeMinus(){ life--; update(); playTapIfEnabled(); }
+    function depthPlus(){ depth++; update(); playTapIfEnabled(); }
+    function depthMinus(){ depth--; update(); playTapIfEnabled(); }
 
     function reset(){
       life = 10;
       depth = 1;
       update();
+      playTapIfEnabled();
     }
 
     update();
@@ -268,14 +308,21 @@
       {
         id: "siren",
         file: "bg-siren.PNG",
-        posY: "18px"
+        posY: "18px",
+        music: "bgm-siren.mp3"
       },
       {
         id: "leviathan",
         file: "bg-leviathan.PNG",
-        posY: "18px"
+        posY: "18px",
+        music: "bgm-leviathan.mp3"
       }
     ];
+
+    function getCurrentBg(){
+      const saved = localStorage.getItem(BG_KEY) || "siren";
+      return BG_LIST.find(item => item.id === saved) || BG_LIST[0];
+    }
 
     function applyBackground(bgId){
       const bg = BG_LIST.find(item => item.id === bgId) || BG_LIST[0];
@@ -284,6 +331,10 @@
       document.documentElement.style.setProperty("--bg-pos-y", bg.posY);
 
       localStorage.setItem(BG_KEY, bg.id);
+
+      if (isMusicEnabled()) {
+        switchMusicForBackground(bg);
+      }
     }
 
     function toggleBackground(){
@@ -291,12 +342,82 @@
       const currentIndex = BG_LIST.findIndex(item => item.id === current);
       const nextIndex = (currentIndex + 1) % BG_LIST.length;
       applyBackground(BG_LIST[nextIndex].id);
+      playTapIfEnabled();
     }
 
     document.getElementById("bgToggleBtn").addEventListener("click", toggleBackground);
 
-    const savedBg = localStorage.getItem(BG_KEY) || "siren";
-    applyBackground(savedBg);
+    // -----------------------------
+    // Music
+    // -----------------------------
+    const MUSIC_KEY = "kaiyouki_music_enabled";
+    const audio = new Audio();
+    audio.loop = true;
+    audio.preload = "auto";
+
+    function isMusicEnabled(){
+      return localStorage.getItem(MUSIC_KEY) === "true";
+    }
+
+    function updateMusicButton(){
+      const btn = document.getElementById("musicBtn");
+      if (isMusicEnabled()) {
+        btn.classList.add("on");
+        btn.textContent = "🎵";
+      } else {
+        btn.classList.remove("on");
+        btn.textContent = "🎵";
+      }
+    }
+
+    async function switchMusicForBackground(bg){
+      try{
+        const nextSrc = bg.music;
+        if (!audio.src.endsWith(nextSrc)) {
+          audio.src = nextSrc;
+        }
+        audio.currentTime = 0;
+        await audio.play();
+      } catch (e) {
+        localStorage.setItem(MUSIC_KEY, "false");
+        updateMusicButton();
+      }
+    }
+
+    async function toggleMusic(){
+      const enabled = isMusicEnabled();
+
+      if (enabled) {
+        localStorage.setItem(MUSIC_KEY, "false");
+        audio.pause();
+      } else {
+        localStorage.setItem(MUSIC_KEY, "true");
+        const bg = getCurrentBg();
+        await switchMusicForBackground(bg);
+      }
+
+      updateMusicButton();
+    }
+
+    document.getElementById("musicBtn").addEventListener("click", toggleMusic);
+
+    // -----------------------------
+    // Tiny tap sound substitute
+    // -----------------------------
+    function playTapIfEnabled(){
+      // BGMオンのときだけ軽くUI反応を残したい場合のフック
+      // 今回は追加の効果音ファイルなしで空のまま
+    }
+
+    // -----------------------------
+    // Init
+    // -----------------------------
+    applyBackground(localStorage.getItem(BG_KEY) || "siren");
+    updateMusicButton();
+
+    if (isMusicEnabled()) {
+      audio.src = getCurrentBg().music;
+    }
   </script>
 </body>
 </html>
