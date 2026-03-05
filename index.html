@@ -50,29 +50,6 @@
       background:transparent;
       border:none;
       box-shadow:none;
-      position:relative;
-    }
-
-    .bgToggle{
-      position:absolute;
-      right:0;
-      top:-50px;
-      height:38px;
-      padding:0 14px;
-      border:none;
-      border-radius:999px;
-      background:rgba(3,16,27,.34);
-      border:1px solid rgba(190,230,255,.12);
-      color:rgba(255,255,255,.94);
-      font-size:12px;
-      font-weight:800;
-      letter-spacing:.12em;
-      backdrop-filter:blur(4px);
-      box-shadow:0 8px 18px rgba(0,0,0,.16);
-    }
-
-    .bgToggle:active{
-      transform:scale(.99);
     }
 
     .block{
@@ -140,25 +117,42 @@
       letter-spacing:.06em;
     }
 
-    .reset{
-      width:100%;
-      height:62px;
-      border:none;
-      border-radius:20px;
+    .footerButtons{
+      display:flex;
+      gap:10px;
       margin-top:4px;
-      font-size:20px;
+    }
+
+    .reset,
+    .bgSwitch{
+      flex:1;
+      height:58px;
+      border:none;
+      border-radius:18px;
+      font-size:18px;
       font-weight:800;
-      letter-spacing:.18em;
+      letter-spacing:.10em;
+      box-shadow:
+        0 10px 20px rgba(0,0,0,.20),
+        inset 0 1px 0 rgba(255,255,255,.16);
+    }
+
+    .reset{
       color:#fff8e8;
       background:
         linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,0) 24%),
         linear-gradient(180deg, #d9ba5b 0%, #c79f39 44%, #976f1c 100%);
-      box-shadow:
-        0 12px 24px rgba(0,0,0,.22),
-        inset 0 1px 0 rgba(255,255,255,.18);
     }
 
-    .reset:active{
+    .bgSwitch{
+      color:#eef9ff;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,0) 24%),
+        linear-gradient(180deg, #4f6b86 0%, #334b61 44%, #22384c 100%);
+    }
+
+    .reset:active,
+    .bgSwitch:active{
       transform:scale(.99);
     }
 
@@ -167,12 +161,6 @@
         padding:
           calc(220px + env(safe-area-inset-top)) 14px
           calc(24px + env(safe-area-inset-bottom));
-      }
-
-      .bgToggle{
-        top:-46px;
-        height:36px;
-        font-size:11px;
       }
 
       .btn{
@@ -192,9 +180,15 @@
         margin-bottom:12px;
       }
 
-      .reset{
-        height:60px;
-        font-size:19px;
+      .footerButtons{
+        gap:8px;
+      }
+
+      .reset,
+      .bgSwitch{
+        height:54px;
+        font-size:16px;
+        border-radius:16px;
       }
     }
   </style>
@@ -203,8 +197,6 @@
 <body>
   <div class="wrap">
     <div class="panel">
-
-      <button class="bgToggle" id="bgToggleBtn" type="button">BG: SIREN</button>
 
       <div class="block">
         <div class="label">LIFE</div>
@@ -226,7 +218,11 @@
         <div class="hint">範囲 1〜4</div>
       </div>
 
-      <button class="reset" onclick="reset()">RESET</button>
+      <div class="footerButtons">
+        <button class="reset" onclick="reset()">RESET</button>
+        <button class="bgSwitch" id="bgToggleBtn" type="button">背景切り替え</button>
+      </div>
+
     </div>
   </div>
 
@@ -271,13 +267,11 @@
     const BG_LIST = [
       {
         id: "siren",
-        label: "SIREN",
         file: "bg-siren.PNG",
         posY: "18px"
       },
       {
         id: "leviathan",
-        label: "LEVIATHAN",
         file: "bg-leviathan.PNG",
         posY: "18px"
       }
@@ -289,7 +283,6 @@
       document.documentElement.style.setProperty("--bg-url", `url("${bg.file}")`);
       document.documentElement.style.setProperty("--bg-pos-y", bg.posY);
 
-      document.getElementById("bgToggleBtn").textContent = `BG: ${bg.label}`;
       localStorage.setItem(BG_KEY, bg.id);
     }
 
