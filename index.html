@@ -19,16 +19,11 @@
       background-size:cover; background-repeat:no-repeat; background-position:center 18px;
     }
 
-    /* ✅ ロゴ付近の透明タップゾーン（ここを7回タップ） */
     .logoTapZone{
-      position:fixed;
-      top:0; left:0; right:0;
-      height:160px; /* ロゴがある上部を覆う */
-      z-index:2;
-      background:transparent;
+      position:fixed; top:0; left:0; right:0; height:160px;
+      z-index:2; background:transparent;
     }
 
-    /* 解放メッセージ */
     .toast{
       position:fixed;
       top:calc(12px + env(safe-area-inset-top));
@@ -116,11 +111,13 @@
         linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,0) 24%),
         linear-gradient(180deg, #6ea8d1 0%, #4a7ead 44%, #2f5f86 100%);
     }
+    .musicBtn.secret{
+      outline:2px solid rgba(217,194,122,.55);
+      box-shadow: 0 10px 20px rgba(0,0,0,.20), 0 0 18px rgba(217,194,122,.18), inset 0 1px 0 rgba(255,255,255,.16);
+    }
 
     @media (max-width: 430px){
-      .wrap{
-        padding: calc(220px + env(safe-area-inset-top)) 14px calc(24px + env(safe-area-inset-bottom));
-      }
+      .wrap{ padding: calc(220px + env(safe-area-inset-top)) 14px calc(24px + env(safe-area-inset-bottom)); }
       .btn{ width:74px; height:74px; font-size:38px; }
       .value{ min-width:80px; font-size:64px; }
       .block{ border-radius:22px; padding:14px 12px 12px; margin-bottom:12px; }
@@ -134,14 +131,11 @@
 
 <body>
   <div class="bgLayer" id="bgLayer"></div>
-
-  <!-- ✅ ロゴ付近タップゾーン -->
-  <div class="logoTapZone" id="logoTapZone" aria-label="logo tap zone"></div>
-  <div class="toast" id="toast">SECRET UNLOCKED</div>
+  <div class="logoTapZone" id="logoTapZone"></div>
+  <div class="toast" id="toast">SECRET</div>
 
   <div class="wrap">
-    <div class="panel" id="panel">
-
+    <div class="panel">
       <div class="block">
         <div class="label">LIFE</div>
         <div class="row">
@@ -165,81 +159,94 @@
       <div class="footerButtons">
         <button class="reset" type="button" onclick="reset()">RESET</button>
         <button class="bgSwitch" id="bgToggleBtn" type="button">背景切り替え</button>
-        <button class="musicBtn" id="musicBtn" type="button" aria-label="BGM切り替え">🎵</button>
+        <button class="musicBtn" id="musicBtn" type="button" aria-label="BGM">🎵</button>
       </div>
-
     </div>
   </div>
 
   <script>
-    // -----------------------------
-    // SFX (tap / depth)
-    // -----------------------------
-    const sfxTap = new Audio("tap.mp3");
-    const sfxDepth = new Audio("depth.mp3");
-    sfxTap.preload = "auto";
-    sfxDepth.preload = "auto";
-    async function playSfx(a){
-      try{ a.currentTime=0; await a.play(); }catch(e){}
+    // -------- Keys
+    const BG_KEY = "kaiyouki_bg";
+    const MUSIC_KEY = "kaiyouki_music_enabled";
+    const SECRET_UNLOCKED_KEY = "kaiyouki_secret_unlocked";
+    const SECRET_ENABLED_KEY = "kaiyouki_secret_enabled";
+
+    // -------- Utils
+    const clamp = (v,min,max)=> Math.min(max, Math.max(min, v));
+    function toast(msg){
+      const t = document.getElementById("toast");
+      t.textContent = msg;
+      t.classList.add("show");
+      setTimeout(()=>t.classList.remove("show"), 1200);
     }
 
-    // -----------------------------
-    // Counter state
-    // -----------------------------
+    // -------- SFX
+    const sfxTap = new Audio("tap.mp3");
+    const sfxDepth = new Audio("depth.mp3");
+    async function playSfx(a){ try{ a.currentTime=0; await a.play(); }catch(e){} }
+
+    // -------- Counters
     let life = Number(localStorage.getItem("kaiyouki_life") ?? 10);
     let depth = Number(localStorage.getItem("kaiyouki_depth") ?? 1);
-    const clamp = (v,min,max)=> Math.min(max, Math.max(min, v));
-
-    function update(){
-      life = clamp(life, 0, 10);
-      depth = clamp(depth, 1, 4);
+    function updateCounters(){
+      life = clamp(life,0,10); depth = clamp(depth,1,4);
       document.getElementById("life").innerText = life;
       document.getElementById("depth").innerText = depth;
       localStorage.setItem("kaiyouki_life", life);
       localStorage.setItem("kaiyouki_depth", depth);
     }
-    async function lifePlus(){ life++; update(); await playSfx(sfxTap); }
-    async function lifeMinus(){ life--; update(); await playSfx(sfxTap); }
-    async function depthPlus(){ depth++; update(); await playSfx(sfxDepth); }
-    async function depthMinus(){ depth--; update(); await playSfx(sfxDepth); }
-    async function reset(){ life=10; depth=1; update(); await playSfx(sfxTap); }
-    update();
+    async function lifePlus(){ life++; updateCounters(); await playSfx(sfxTap); }
+    async function lifeMinus(){ life--; updateCounters(); await playSfx(sfxTap); }
+    async function depthPlus(){ depth++; updateCounters(); await playSfx(sfxDepth); }
+    async function depthMinus(){ depth--; updateCounters(); await playSfx(sfxDepth); }
+    async function reset(){ life=10; depth=1; updateCounters(); await playSfx(sfxTap); }
+    updateCounters();
 
-    // -----------------------------
-    // Background + BGM
-    // -----------------------------
-    const BG_KEY = "kaiyouki_bg";
-    const MUSIC_KEY = "kaiyouki_music_enabled";
-    const SECRET_KEY = "kaiyouki_secret_unlocked";
-
+    // -------- Background
     const BG_LIST = [
       { id:"siren", file:"bg-siren.PNG", music:"bgm-siren.mp3", offset:18 },
       { id:"leviathan", file:"bg-leviathan.PNG", music:"bgm-leviathan.mp3", offset:18 }
     ];
-
     const bgLayer = document.getElementById("bgLayer");
+    function getBgId(){ return localStorage.getItem(BG_KEY) || "siren"; }
+    function getBg(id){ return BG_LIST.find(b=>b.id===id) || BG_LIST[0]; }
+    function applyBg(id){
+      const bg = getBg(id);
+      bgLayer.style.backgroundImage = `linear-gradient(rgba(0,0,0,.10), rgba(0,0,0,.22)), url("${bg.file}")`;
+      bgLayer.style.backgroundPosition = `center ${bg.offset}px`;
+      localStorage.setItem(BG_KEY, bg.id);
+      if (isMusicOn()) switchMusic();
+    }
+    async function toggleBg(){
+      const cur = getBgId();
+      const idx = BG_LIST.findIndex(b=>b.id===cur);
+      applyBg(BG_LIST[(idx+1)%BG_LIST.length].id);
+      await playSfx(sfxTap);
+    }
+    document.getElementById("bgToggleBtn").addEventListener("click", toggleBg);
+
+    // -------- Music
     const audio = new Audio();
     audio.loop = true;
     audio.preload = "auto";
 
-    function isMusicEnabled(){ return localStorage.getItem(MUSIC_KEY) === "true"; }
-    function isSecretUnlocked(){ return localStorage.getItem(SECRET_KEY) === "true"; }
+    function isMusicOn(){ return localStorage.getItem(MUSIC_KEY)==="true"; }
+    function isSecretUnlocked(){ return localStorage.getItem(SECRET_UNLOCKED_KEY)==="true"; }
+    function isSecretEnabled(){ return localStorage.getItem(SECRET_ENABLED_KEY)==="true"; }
 
-    function getCurrentBgId(){ return localStorage.getItem(BG_KEY) || "siren"; }
-    function getBg(bgId){ return BG_LIST.find(b=>b.id===bgId) || BG_LIST[0]; }
-
-    function applyBackground(bgId){
-      const bg = getBg(bgId);
-      bgLayer.style.backgroundImage = `linear-gradient(rgba(0,0,0,.10), rgba(0,0,0,.22)), url("${bg.file}")`;
-      bgLayer.style.backgroundPosition = `center ${bg.offset}px`;
-      localStorage.setItem(BG_KEY, bg.id);
-      if (isMusicEnabled()) switchMusic(bg);
+    function setSecretEnabled(v){
+      localStorage.setItem(SECRET_ENABLED_KEY, v ? "true" : "false");
+      updateMusicButton();
     }
 
-    async function switchMusic(bg){
+    function updateMusicButton(){
+      const btn = document.getElementById("musicBtn");
+      if (isMusicOn()) btn.classList.add("on"); else btn.classList.remove("on");
+      if (isSecretUnlocked() && isSecretEnabled()) btn.classList.add("secret"); else btn.classList.remove("secret");
+    }
+
+    async function playBgm(src){
       try{
-        // SECRET曲が解放されていて、BGM ONなら、SECRETを優先再生（仕様はここで変えられる）
-        const src = (isSecretUnlocked() ? "bgm-secret.mp3" : bg.music);
         if (!audio.src.endsWith(src)) audio.src = src;
         audio.currentTime = 0;
         await audio.play();
@@ -249,74 +256,83 @@
       }
     }
 
-    async function toggleBackground(){
-      const cur = getCurrentBgId();
-      const idx = BG_LIST.findIndex(b=>b.id===cur);
-      const next = BG_LIST[(idx+1)%BG_LIST.length].id;
-      applyBackground(next);
-      await playSfx(sfxTap);
-    }
-    document.getElementById("bgToggleBtn").addEventListener("click", toggleBackground);
-
-    // Music toggle
-    function updateMusicButton(){
-      const btn = document.getElementById("musicBtn");
-      if (isMusicEnabled()) btn.classList.add("on");
-      else btn.classList.remove("on");
+    async function switchMusic(){
+      const bg = getBg(getBgId());
+      if (isSecretUnlocked() && isSecretEnabled()){
+        await playBgm("bgm-secret.mp3");
+      }else{
+        await playBgm(bg.music);
+      }
     }
 
+    // 🎵 短押し：BGM ON/OFF
     async function toggleMusic(){
-      if (isMusicEnabled()){
+      if (isMusicOn()){
         localStorage.setItem(MUSIC_KEY,"false");
         audio.pause();
       }else{
         localStorage.setItem(MUSIC_KEY,"true");
-        await switchMusic(getBg(getCurrentBgId()));
+        await switchMusic();
       }
       updateMusicButton();
       await playSfx(sfxTap);
     }
-    document.getElementById("musicBtn").addEventListener("click", toggleMusic);
 
-    // -----------------------------
-    // SECRET: logo 7 taps
-    // -----------------------------
-    let tapCount = 0;
-    let tapTimer = null;
-
-    function showToast(msg){
-      const toast = document.getElementById("toast");
-      toast.textContent = msg;
-      toast.classList.add("show");
-      setTimeout(()=>toast.classList.remove("show"), 1200);
+    // 🎵 長押し：SECRET ON/OFF（解放済みのみ）
+    async function toggleSecretMode(){
+      if (!isSecretUnlocked()){
+        toast("NOT UNLOCKED");
+        return;
+      }
+      setSecretEnabled(!isSecretEnabled());
+      toast(isSecretEnabled() ? "SECRET ON" : "SECRET OFF");
+      await playSfx(sfxTap);
+      if (isMusicOn()){
+        await switchMusic();
+      }
     }
 
+    // 長押し判定
+    let pressTimer = null;
+    const musicBtn = document.getElementById("musicBtn");
+
+    musicBtn.addEventListener("touchstart", (e)=>{
+      pressTimer = setTimeout(()=>{ toggleSecretMode(); }, 650);
+    }, {passive:true});
+    musicBtn.addEventListener("touchend", ()=>{
+      if (pressTimer){ clearTimeout(pressTimer); pressTimer=null; }
+    }, {passive:true});
+    musicBtn.addEventListener("click", ()=>{
+      // 長押しが発火してたら click も来ることがあるので抑制
+      if (pressTimer === null) return;
+      clearTimeout(pressTimer); pressTimer=null;
+      toggleMusic();
+    });
+
+    // -------- Secret unlock: logo 7 taps
+    let tapCount=0, tapTimer=null;
     async function unlockSecret(){
       if (isSecretUnlocked()) return;
-      localStorage.setItem(SECRET_KEY, "true");
-      showToast("SECRET UNLOCKED");
+      localStorage.setItem(SECRET_UNLOCKED_KEY,"true");
+      setSecretEnabled(false); // ✅ 解放しても自動でSECRET再生しない
+      toast("SECRET UNLOCKED");
       await playSfx(sfxTap);
-      // BGMがONなら即切り替え
-      if (isMusicEnabled()){
-        await switchMusic(getBg(getCurrentBgId()));
-      }
+      updateMusicButton();
     }
 
     document.getElementById("logoTapZone").addEventListener("click", async ()=>{
       tapCount++;
       if (tapTimer) clearTimeout(tapTimer);
-      tapTimer = setTimeout(()=>{ tapCount = 0; }, 1200); // 1.2秒以内に連打
-
-      if (tapCount >= 7){
-        tapCount = 0;
+      tapTimer = setTimeout(()=>{ tapCount=0; }, 1200);
+      if (tapCount>=7){
+        tapCount=0;
         await unlockSecret();
       }
     });
 
-    // -----------------------------
     // Init
-    // -----------------------------
-    applyBackground(getCurrentBgId());
+    if (localStorage.getItem(SECRET_ENABLED_KEY) === null) setSecretEnabled(false);
+    applyBg(getBgId());
     updateMusicButton();
   </script>
 </body>
