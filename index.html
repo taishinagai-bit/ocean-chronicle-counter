@@ -111,6 +111,7 @@
         linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,0) 24%),
         linear-gradient(180deg, #6ea8d1 0%, #4a7ead 44%, #2f5f86 100%);
     }
+    /* SECRETが有効のときだけ縁が光る */
     .musicBtn.secret{
       outline:2px solid rgba(217,194,122,.55);
       box-shadow: 0 10px 20px rgba(0,0,0,.20), 0 0 18px rgba(217,194,122,.18), inset 0 1px 0 rgba(255,255,255,.16);
@@ -265,8 +266,8 @@
       }
     }
 
-    // 🎵 短押し：BGM ON/OFF
-    async function toggleMusic(){
+    // BGM ON/OFF
+    async function toggleMusicOnOff(){
       if (isMusicOn()){
         localStorage.setItem(MUSIC_KEY,"false");
         audio.pause();
@@ -278,7 +279,7 @@
       await playSfx(sfxTap);
     }
 
-    // 🎵 長押し：SECRET ON/OFF（解放済みのみ）
+    // SECRET ON/OFF（解放済みのみ）
     async function toggleSecretMode(){
       if (!isSecretUnlocked()){
         toast("NOT UNLOCKED");
@@ -292,21 +293,22 @@
       }
     }
 
-    // 長押し判定
-    let pressTimer = null;
+    // ✅ 🎵：シングルタップ=ON/OFF、ダブルタップ=SECRET切替
     const musicBtn = document.getElementById("musicBtn");
+    let clickTimer = null;
+    const DOUBLE_MS = 320;
 
-    musicBtn.addEventListener("touchstart", (e)=>{
-      pressTimer = setTimeout(()=>{ toggleSecretMode(); }, 650);
-    }, {passive:true});
-    musicBtn.addEventListener("touchend", ()=>{
-      if (pressTimer){ clearTimeout(pressTimer); pressTimer=null; }
-    }, {passive:true});
     musicBtn.addEventListener("click", ()=>{
-      // 長押しが発火してたら click も来ることがあるので抑制
-      if (pressTimer === null) return;
-      clearTimeout(pressTimer); pressTimer=null;
-      toggleMusic();
+      if (clickTimer){
+        clearTimeout(clickTimer);
+        clickTimer = null;
+        toggleSecretMode();       // ダブルタップ
+      }else{
+        clickTimer = setTimeout(()=>{
+          clickTimer = null;
+          toggleMusicOnOff();     // シングルタップ
+        }, DOUBLE_MS);
+      }
     });
 
     // -------- Secret unlock: logo 7 taps
@@ -314,7 +316,7 @@
     async function unlockSecret(){
       if (isSecretUnlocked()) return;
       localStorage.setItem(SECRET_UNLOCKED_KEY,"true");
-      setSecretEnabled(false); // ✅ 解放しても自動でSECRET再生しない
+      setSecretEnabled(false); // 解放しても自動でSECRETにはしない
       toast("SECRET UNLOCKED");
       await playSfx(sfxTap);
       updateMusicButton();
