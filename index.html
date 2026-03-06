@@ -10,15 +10,7 @@
 
   <style>
     *{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
-
-    /* ✅ A版：スクロールOK */
-    html,body{
-      margin:0;
-      min-height:100%;
-      overflow:auto;
-      touch-action:pan-y; /* 縦スクロールを許可 */
-      background:#061018;
-    }
+    html,body{ margin:0; min-height:100%; background:#061018; }
 
     body{
       color:white;
@@ -27,27 +19,26 @@
     }
 
     .bgLayer{
-      position:fixed;
-      inset:0;
-      z-index:0;
+      position:fixed; inset:0; z-index:0;
       background-image: linear-gradient(rgba(0,0,0,.10), rgba(0,0,0,.22)), url("bg-siren.PNG");
       background-size:cover;
       background-repeat:no-repeat;
       background-position:center 18px;
+      will-change: background-position;
     }
 
-    /* ✅ ロゴ付近タップゾーン：ここだけスクロール/ズーム影響を抑える */
-    .logoTapZone{
+    /* ✅ 背景操作ゾーン（ここをドラッグで背景移動 / 7回タップで解放） */
+    .bgControlZone{
       position:fixed;
       top:0; left:0; right:0;
-      height:160px;
-      z-index:2;
+      height:220px;                 /* 上部広めに */
+      z-index:3;
       background:transparent;
 
-      /* ダブルタップズーム等を抑え、タップを取りやすく */
-      touch-action:manipulation;
-      -webkit-user-select:none;
+      /* ✅ ここだけドラッグを優先させる */
+      touch-action:none;
       user-select:none;
+      -webkit-user-select:none;
     }
 
     .toast{
@@ -55,7 +46,7 @@
       top:calc(12px + env(safe-area-inset-top));
       left:50%;
       transform:translateX(-50%);
-      z-index:3;
+      z-index:4;
       padding:8px 12px;
       border-radius:999px;
       font-size:12px;
@@ -70,28 +61,16 @@
     }
     .toast.show{ opacity:1; }
 
-    /* 画面全体はスクロールOKだが、UIは固定表示 */
+    /* UIは固定 */
     .wrap{
-      position:fixed;
-      left:0; right:0; bottom:0;
-      z-index:1;
-      display:flex;
-      align-items:flex-end;
-      justify-content:center;
-      padding:
-        calc(228px + env(safe-area-inset-top)) 16px
-        calc(26px + env(safe-area-inset-bottom));
-      pointer-events:none; /* 下のpanel以外でタップを拾わない */
+      position:fixed; left:0; right:0; bottom:0;
+      z-index:2;
+      display:flex; align-items:flex-end; justify-content:center;
+      padding: calc(228px + env(safe-area-inset-top)) 16px calc(26px + env(safe-area-inset-bottom));
+      pointer-events:none;
     }
 
-    .panel{
-      width:min(92vw, 420px);
-      padding:0;
-      background:transparent;
-      border:none;
-      box-shadow:none;
-      pointer-events:auto; /* ✅ ボタン操作は生かす */
-    }
+    .panel{ width:min(92vw, 420px); pointer-events:auto; background:transparent; }
 
     .block{
       background:rgba(3,16,27,.28);
@@ -100,93 +79,34 @@
       padding:16px 14px 12px;
       margin-bottom:14px;
       backdrop-filter:blur(4px);
-      box-shadow: 0 10px 24px rgba(0,0,0,.16);
+      box-shadow:0 10px 24px rgba(0,0,0,.16);
     }
 
-    .label{
-      font-size:12px;
-      letter-spacing:.24em;
-      font-weight:700;
-      color:rgba(255,255,255,.94);
-      margin-bottom:12px;
-    }
-
-    .row{
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      gap:16px;
-    }
-
-    .value{
-      min-width:88px;
-      font-size:70px;
-      font-weight:800;
-      line-height:1;
-      color:#f4fbff;
-      text-shadow:0 8px 22px rgba(0,0,0,.30);
-    }
+    .label{ font-size:12px; letter-spacing:.24em; font-weight:700; color:rgba(255,255,255,.94); margin-bottom:12px; }
+    .row{ display:flex; align-items:center; justify-content:center; gap:16px; }
+    .value{ min-width:88px; font-size:70px; font-weight:800; line-height:1; color:#f4fbff; text-shadow:0 8px 22px rgba(0,0,0,.30); }
 
     .btn{
-      width:82px;
-      height:82px;
-      border:none;
-      border-radius:20px;
-      font-size:42px;
-      font-weight:700;
-      color:#eef9ff;
+      width:82px; height:82px; border:none; border-radius:20px;
+      font-size:42px; font-weight:700; color:#eef9ff;
       background:
         linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,0) 24%),
         linear-gradient(180deg, #6d96bd 0%, #467aa7 42%, #2c5f87 100%);
-      box-shadow:
-        0 10px 20px rgba(0,0,0,.20),
-        inset 0 1px 0 rgba(255,255,255,.18);
+      box-shadow:0 10px 20px rgba(0,0,0,.20), inset 0 1px 0 rgba(255,255,255,.18);
       touch-action:manipulation;
     }
-    .btn:active{
-      transform:scale(.98);
-      box-shadow:
-        0 7px 14px rgba(0,0,0,.16),
-        inset 0 2px 6px rgba(0,0,0,.14);
-    }
+    .btn:active{ transform:scale(.98); box-shadow:0 7px 14px rgba(0,0,0,.16), inset 0 2px 6px rgba(0,0,0,.14); }
 
-    .hint{
-      margin-top:10px;
-      font-size:12px;
-      color:rgba(255,255,255,.64);
-      letter-spacing:.06em;
-    }
+    .hint{ margin-top:10px; font-size:12px; color:rgba(255,255,255,.64); letter-spacing:.06em; }
 
-    .footerButtons{
-      display:flex;
-      gap:10px;
-      margin-top:4px;
-    }
-
+    .footerButtons{ display:flex; gap:10px; margin-top:4px; }
     .reset,.bgSwitch,.musicBtn{
-      border:none;
-      border-radius:18px;
-      font-weight:800;
-      box-shadow:
-        0 10px 20px rgba(0,0,0,.20),
-        inset 0 1px 0 rgba(255,255,255,.16);
+      border:none; border-radius:18px; font-weight:800;
+      box-shadow:0 10px 20px rgba(0,0,0,.20), inset 0 1px 0 rgba(255,255,255,.16);
       touch-action:manipulation;
     }
-    .reset,.bgSwitch{
-      flex:1;
-      height:58px;
-      font-size:18px;
-      letter-spacing:.10em;
-    }
-    .musicBtn{
-      width:58px;
-      height:58px;
-      flex:0 0 58px;
-      font-size:24px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-    }
+    .reset,.bgSwitch{ flex:1; height:58px; font-size:18px; letter-spacing:.10em; }
+    .musicBtn{ width:58px; height:58px; flex:0 0 58px; font-size:24px; display:flex; align-items:center; justify-content:center; }
 
     .reset{
       color:#fff8e8;
@@ -214,10 +134,7 @@
     }
     .musicBtn.secret{
       outline:2px solid rgba(217,194,122,.55);
-      box-shadow:
-        0 10px 20px rgba(0,0,0,.20),
-        0 0 18px rgba(217,194,122,.18),
-        inset 0 1px 0 rgba(255,255,255,.16);
+      box-shadow:0 10px 20px rgba(0,0,0,.20), 0 0 18px rgba(217,194,122,.18), inset 0 1px 0 rgba(255,255,255,.16);
     }
 
     @media (max-width: 430px){
@@ -227,15 +144,14 @@
       .footerButtons{ gap:8px; }
       .reset,.bgSwitch{ height:54px; font-size:16px; border-radius:16px; }
       .musicBtn{ width:54px; height:54px; flex:0 0 54px; font-size:22px; border-radius:16px; }
-      .logoTapZone{ height:150px; }
+      .bgControlZone{ height:210px; }
     }
   </style>
 </head>
 
 <body>
   <div class="bgLayer" id="bgLayer"></div>
-
-  <div class="logoTapZone" id="logoTapZone"></div>
+  <div class="bgControlZone" id="bgControlZone"></div>
   <div class="toast" id="toast">SECRET</div>
 
   <div class="wrap">
@@ -269,153 +185,161 @@
   </div>
 
   <script>
-    // -------- Keys
-    const BG_KEY = "kaiyouki_bg";
-    const MUSIC_KEY = "kaiyouki_music_enabled";
-    const SECRET_UNLOCKED_KEY = "kaiyouki_secret_unlocked";
-    const SECRET_ENABLED_KEY = "kaiyouki_secret_enabled";
+    // ---- keys
+    const BG_KEY="kaiyouki_bg", MUSIC_KEY="kaiyouki_music_enabled";
+    const SECRET_UNLOCKED_KEY="kaiyouki_secret_unlocked", SECRET_ENABLED_KEY="kaiyouki_secret_enabled";
+    const clamp=(v,min,max)=>Math.min(max,Math.max(min,v));
+    const bgLayer=document.getElementById("bgLayer");
 
-    // -------- Utils
-    const clamp = (v,min,max)=> Math.min(max, Math.max(min, v));
     function toast(msg){
-      const t = document.getElementById("toast");
-      t.textContent = msg;
-      t.classList.add("show");
-      setTimeout(()=>t.classList.remove("show"), 1200);
+      const t=document.getElementById("toast");
+      t.textContent=msg; t.classList.add("show");
+      setTimeout(()=>t.classList.remove("show"),1200);
     }
 
-    // -------- SFX
-    const sfxTap = new Audio("tap.mp3");
-    const sfxDepth = new Audio("depth.mp3");
-    async function playSfx(a){ try{ a.currentTime=0; await a.play(); }catch(e){} }
+    // ---- sfx
+    const sfxTap=new Audio("tap.mp3");
+    const sfxDepth=new Audio("depth.mp3");
+    async function playSfx(a){try{a.currentTime=0; await a.play();}catch(e){}}
 
-    // -------- Counters
-    let life = Number(localStorage.getItem("kaiyouki_life") ?? 10);
-    let depth = Number(localStorage.getItem("kaiyouki_depth") ?? 1);
+    // ---- counters
+    let life=Number(localStorage.getItem("kaiyouki_life")??10);
+    let depth=Number(localStorage.getItem("kaiyouki_depth")??1);
     function updateCounters(){
-      life = clamp(life,0,10); depth = clamp(depth,1,4);
-      document.getElementById("life").innerText = life;
-      document.getElementById("depth").innerText = depth;
-      localStorage.setItem("kaiyouki_life", life);
-      localStorage.setItem("kaiyouki_depth", depth);
+      life=clamp(life,0,10); depth=clamp(depth,1,4);
+      document.getElementById("life").innerText=life;
+      document.getElementById("depth").innerText=depth;
+      localStorage.setItem("kaiyouki_life",life);
+      localStorage.setItem("kaiyouki_depth",depth);
     }
-    async function lifePlus(){ life++; updateCounters(); await playSfx(sfxTap); }
-    async function lifeMinus(){ life--; updateCounters(); await playSfx(sfxTap); }
-    async function depthPlus(){ depth++; updateCounters(); await playSfx(sfxDepth); }
-    async function depthMinus(){ depth--; updateCounters(); await playSfx(sfxDepth); }
-    async function reset(){ life=10; depth=1; updateCounters(); await playSfx(sfxTap); }
+    async function lifePlus(){life++; updateCounters(); await playSfx(sfxTap);}
+    async function lifeMinus(){life--; updateCounters(); await playSfx(sfxTap);}
+    async function depthPlus(){depth++; updateCounters(); await playSfx(sfxDepth);}
+    async function depthMinus(){depth--; updateCounters(); await playSfx(sfxDepth);}
+    async function reset(){life=10; depth=1; updateCounters(); await playSfx(sfxTap);}
     updateCounters();
 
-    // -------- Background
-    const BG_LIST = [
-      { id:"siren", file:"bg-siren.PNG", music:"bgm-siren.mp3", offset:18 },
-      { id:"leviathan", file:"bg-leviathan.PNG", music:"bgm-leviathan.mp3", offset:18 }
+    // ---- background list + offset save per bg
+    const BG_LIST=[
+      {id:"siren",file:"bg-siren.PNG",music:"bgm-siren.mp3",defaultOffset:18},
+      {id:"leviathan",file:"bg-leviathan.PNG",music:"bgm-leviathan.mp3",defaultOffset:18}
     ];
-    const bgLayer = document.getElementById("bgLayer");
-    function getBgId(){ return localStorage.getItem(BG_KEY) || "siren"; }
-    function getBg(id){ return BG_LIST.find(b=>b.id===id) || BG_LIST[0]; }
-    function applyBg(id){
-      const bg = getBg(id);
-      bgLayer.style.backgroundImage = `linear-gradient(rgba(0,0,0,.10), rgba(0,0,0,.22)), url("${bg.file}")`;
-      bgLayer.style.backgroundPosition = `center ${bg.offset}px`;
-      localStorage.setItem(BG_KEY, bg.id);
-      if (isMusicOn()) switchMusic();
+    function getBgId(){return localStorage.getItem(BG_KEY)||"siren";}
+    function getBg(id){return BG_LIST.find(b=>b.id===id)||BG_LIST[0];}
+    function offsetKey(id){return `kaiyouki_bg_offset_${id}`;}
+    function getOffset(id){
+      const saved=localStorage.getItem(offsetKey(id));
+      return saved!==null?Number(saved):getBg(id).defaultOffset;
     }
-    async function toggleBg(){
-      const cur = getBgId();
-      const idx = BG_LIST.findIndex(b=>b.id===cur);
-      applyBg(BG_LIST[(idx+1)%BG_LIST.length].id);
-      await playSfx(sfxTap);
-    }
-    document.getElementById("bgToggleBtn").addEventListener("click", toggleBg);
+    function setOffset(id,v){localStorage.setItem(offsetKey(id),String(v));}
 
-    // -------- Music
-    const audio = new Audio();
-    audio.loop = true;
-    audio.preload = "auto";
-
-    function isMusicOn(){ return localStorage.getItem(MUSIC_KEY)==="true"; }
-    function isSecretUnlocked(){ return localStorage.getItem(SECRET_UNLOCKED_KEY)==="true"; }
-    function isSecretEnabled(){ return localStorage.getItem(SECRET_ENABLED_KEY)==="true"; }
-
-    function setSecretEnabled(v){
-      localStorage.setItem(SECRET_ENABLED_KEY, v ? "true" : "false");
-      updateMusicButton();
-    }
+    // ---- music
+    const audio=new Audio(); audio.loop=true; audio.preload="auto";
+    function isMusicOn(){return localStorage.getItem(MUSIC_KEY)==="true";}
+    function isSecretUnlocked(){return localStorage.getItem(SECRET_UNLOCKED_KEY)==="true";}
+    function isSecretEnabled(){return localStorage.getItem(SECRET_ENABLED_KEY)==="true";}
+    function setSecretEnabled(v){localStorage.setItem(SECRET_ENABLED_KEY,v?"true":"false"); updateMusicButton();}
 
     function updateMusicButton(){
-      const btn = document.getElementById("musicBtn");
-      if (isMusicOn()) btn.classList.add("on"); else btn.classList.remove("on");
-      if (isSecretUnlocked() && isSecretEnabled()) btn.classList.add("secret"); else btn.classList.remove("secret");
+      const btn=document.getElementById("musicBtn");
+      if(isMusicOn()) btn.classList.add("on"); else btn.classList.remove("on");
+      if(isSecretUnlocked() && isSecretEnabled()) btn.classList.add("secret"); else btn.classList.remove("secret");
     }
-
     async function playBgm(src){
       try{
-        if (!audio.src.endsWith(src)) audio.src = src;
-        audio.currentTime = 0;
+        if(!audio.src.endsWith(src)) audio.src=src;
+        audio.currentTime=0;
         await audio.play();
       }catch(e){
         localStorage.setItem(MUSIC_KEY,"false");
         updateMusicButton();
       }
     }
-
     async function switchMusic(){
-      const bg = getBg(getBgId());
-      if (isSecretUnlocked() && isSecretEnabled()){
-        await playBgm("bgm-secret.mp3");
-      }else{
-        await playBgm(bg.music);
-      }
+      const bg=getBg(getBgId());
+      if(isSecretUnlocked() && isSecretEnabled()) await playBgm("bgm-secret.mp3");
+      else await playBgm(bg.music);
     }
 
+    // ---- apply bg
+    function applyBg(id){
+      const bg=getBg(id);
+      const off=getOffset(id);
+      bgLayer.style.backgroundImage=`linear-gradient(rgba(0,0,0,.10), rgba(0,0,0,.22)), url("${bg.file}")`;
+      bgLayer.style.backgroundPosition=`center ${off}px`;
+      localStorage.setItem(BG_KEY,bg.id);
+      if(isMusicOn()) switchMusic();
+    }
+
+    async function toggleBg(){
+      const cur=getBgId();
+      const idx=BG_LIST.findIndex(b=>b.id===cur);
+      const next=BG_LIST[(idx+1)%BG_LIST.length].id;
+      applyBg(next);
+      await playSfx(sfxTap);
+    }
+    document.getElementById("bgToggleBtn").addEventListener("click",toggleBg);
+
+    // ---- bg drag on top zone
+    const zone=document.getElementById("bgControlZone");
+    let dragging=false, startY=0, startOffset=0;
+
+    function startDrag(y){
+      const id=getBgId();
+      dragging=true;
+      startY=y;
+      startOffset=getOffset(id);
+    }
+    function moveDrag(y){
+      if(!dragging) return;
+      const id=getBgId();
+      const delta=y-startY;
+      const next=startOffset+delta;
+      setOffset(id,next);
+      applyBg(id);
+    }
+    function endDrag(){dragging=false;}
+
+    zone.addEventListener("touchstart",(e)=>{
+      const t=e.touches[0];
+      startDrag(t.clientY);
+    },{passive:false});
+
+    zone.addEventListener("touchmove",(e)=>{
+      const t=e.touches[0];
+      moveDrag(t.clientY);
+      e.preventDefault();
+    },{passive:false});
+
+    zone.addEventListener("touchend",()=>endDrag(),{passive:true});
+    zone.addEventListener("touchcancel",()=>endDrag(),{passive:true});
+
+    // ---- music btn single/double tap
     async function toggleMusicOnOff(){
-      if (isMusicOn()){
-        localStorage.setItem(MUSIC_KEY,"false");
-        audio.pause();
-      }else{
-        localStorage.setItem(MUSIC_KEY,"true");
-        await switchMusic();
-      }
+      if(isMusicOn()){localStorage.setItem(MUSIC_KEY,"false"); audio.pause();}
+      else{localStorage.setItem(MUSIC_KEY,"true"); await switchMusic();}
       updateMusicButton();
       await playSfx(sfxTap);
     }
-
     async function toggleSecretMode(){
-      if (!isSecretUnlocked()){
-        toast("NOT UNLOCKED");
-        return;
-      }
+      if(!isSecretUnlocked()){toast("NOT UNLOCKED"); return;}
       setSecretEnabled(!isSecretEnabled());
-      toast(isSecretEnabled() ? "SECRET ON" : "SECRET OFF");
+      toast(isSecretEnabled()?"SECRET ON":"SECRET OFF");
       await playSfx(sfxTap);
-      if (isMusicOn()){
-        await switchMusic();
-      }
+      if(isMusicOn()) await switchMusic();
     }
 
-    // ✅ 🎵：シングルタップ=ON/OFF、ダブルタップ=SECRET切替
-    const musicBtn = document.getElementById("musicBtn");
-    let clickTimer = null;
-    const DOUBLE_MS = 320;
-
-    musicBtn.addEventListener("click", ()=>{
-      if (clickTimer){
-        clearTimeout(clickTimer);
-        clickTimer = null;
-        toggleSecretMode();
-      }else{
-        clickTimer = setTimeout(()=>{
-          clickTimer = null;
-          toggleMusicOnOff();
-        }, DOUBLE_MS);
-      }
+    const musicBtn=document.getElementById("musicBtn");
+    let clickTimer=null; const DOUBLE_MS=320;
+    musicBtn.addEventListener("click",()=>{
+      if(clickTimer){clearTimeout(clickTimer); clickTimer=null; toggleSecretMode();}
+      else{clickTimer=setTimeout(()=>{clickTimer=null; toggleMusicOnOff();},DOUBLE_MS);}
     });
 
-    // -------- Secret unlock: logo 7 taps（スクロール中でも取りやすいよう少し余裕）
+    // ---- secret unlock: 7 taps on zone (tap only; drag doesn't count)
     let tapCount=0, tapTimer=null;
     async function unlockSecret(){
-      if (isSecretUnlocked()) return;
+      if(isSecretUnlocked()) return;
       localStorage.setItem(SECRET_UNLOCKED_KEY,"true");
       setSecretEnabled(false);
       toast("SECRET UNLOCKED");
@@ -423,18 +347,15 @@
       updateMusicButton();
     }
 
-    document.getElementById("logoTapZone").addEventListener("click", async (e)=>{
+    zone.addEventListener("click", async ()=>{
       tapCount++;
-      if (tapTimer) clearTimeout(tapTimer);
-      tapTimer = setTimeout(()=>{ tapCount=0; }, 1600); /* ✅ 余裕を増やす */
-      if (tapCount>=7){
-        tapCount=0;
-        await unlockSecret();
-      }
+      if(tapTimer) clearTimeout(tapTimer);
+      tapTimer=setTimeout(()=>{tapCount=0;},1600);
+      if(tapCount>=7){tapCount=0; await unlockSecret();}
     });
 
-    // Init
-    if (localStorage.getItem(SECRET_ENABLED_KEY) === null) setSecretEnabled(false);
+    // init
+    if(localStorage.getItem(SECRET_ENABLED_KEY)===null) setSecretEnabled(false);
     applyBg(getBgId());
     updateMusicButton();
   </script>
